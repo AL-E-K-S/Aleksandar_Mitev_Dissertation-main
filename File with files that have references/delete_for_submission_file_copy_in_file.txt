@@ -1,0 +1,89 @@
+
+def train(model,device,the_dataloader, optim,epochs,dataset_size,phase,batch_size):
+    
+    training_data_predictions = torch.tensor([]) # creates a tensor for storing the predictions of teh model 
+    training_data_actual_values = torch.tensor([])
+    
+    
+    model.train() # setd the model to training mode 
+    
+    for epoch in range(epochs):
+
+
+
+        running_loss = 0.0 # sets loss for this epoch to 0
+        running_corrects = 0.0 # sets actual truths to 0 for this epoch
+
+        print("Current epoch" + str(epoch))
+
+        #start_time = time.time()
+
+        loss_list = []    
+        batch_list = []
+
+        predicted_y = []
+        actual_y = []
+
+        for batch_index, (X,y) in enumerate(the_dataloader):
+            #X,y = X.to(device), y.to(device) # X is the input y is teh ground truth
+            
+            optim.zero_grad() # sets the gradients to 0 
+            prediction = model(X) # gets the predictions made by teh model
+            
+            training_data_predictions = torch.cat((training_data_predictions, prediction),dim=0) # combines the predictions of the model for this batch and the ones from before
+            training_data_actual_values = torch.cat((training_data_actual_values, y),dim=0) # adds the tensors with the actual values
+
+            
+            # parts of code below adapted from 
+            if X.size == 4:
+                current_batch_size, channels, height, width = X.shape
+            else:
+                current_batch_size, framesFed ,channels, height, width = X.shape
+
+
+            if current_batch_size < batch_size: # skips smaller batch to plot the graph
+                continue
+
+
+            _, preds = torch.max(prediction.data, 1)
+            loss = layers.CrossEntropyLoss()
+
+            
+            loss_result = loss(prediction,y) # to be chenged to a different one since it does softmax 
+            
+            
+            del X
+
+            
+            #loss =  # calculates the loss
+
+            loss_result.backward() # updates the weights 
+            optim.step() # 
+            
+            running_loss+=loss_result.item() * current_batch_size
+
+            del loss
+            running_corrects+=float(torch.sum(preds == y.data))
+             
+            
+            if (batch_index*30) % 30 == 0: # 
+                print(batch_index)
+                training_result_format = 'batch:({:.0f})|loss:({:.4f}) '.format(batch_index,loss_result)
+                print(training_result_format)
+
+
+
+
+    epoch_loss = running_loss/dataset_size # ;loss fpr this epoch
+    epoch_acc = running_corrects / dataset_size # 
+    y_loss[phase].append(epoch_loss)
+    y_err[phase].append(1.0  - epoch_acc)
+
+    draw_curve(epoch)
+
+    Regular_3D_2D_Hybrid_Testing_Loss = open(("Regular_3D_2D_Hybrid_Training_Loss.csv"), "w" ,newline='') # opens the csv
+    csvWritingFileObject = csv.writer(Regular_3D_2D_Hybrid_Testing_Loss) # creates an instance of teh class that will write to teh csv
+    rowOfData = [batch_list,loss_list] # image details to be added to teh csv
+    csvWritingFileObject.writerow(rowOfData) 
+
+    return model,training_data_predictions,training_data_actual_values

@@ -1,0 +1,1 @@
+"[0, 1, 2, 3]","[tensor(0.7096, grad_fn=<NllLossBackward0>), tensor(0.6905, grad_fn=<NllLossBackward0>), tensor(0.6835, grad_fn=<NllLossBackward0>), tensor(0.6518, grad_fn=<NllLossBackward0>)]"
